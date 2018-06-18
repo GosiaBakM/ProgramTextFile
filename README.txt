@@ -1,0 +1,1 @@
+This is a simple program ( text file ), which contains just menu bar and some options.
