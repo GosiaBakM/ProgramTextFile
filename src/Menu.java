@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 import static javax.swing.JOptionPane.*;
 
@@ -11,9 +14,11 @@ public class Menu extends JFrame implements ActionListener {
 
     JMenuBar menuBar;
     JMenu menuPlik, menuNarzedzia, menuPomoc, menuOpcje;
+    JButton bSzukaj;
     JMenuItem mOtworz, mZapisz, mWyjscie, mNarz1, mNarz2, mOProgramie, mOpcja1, mOpcja2;
     JCheckBoxMenuItem chOpcja2;
     JTextArea notatnik;
+    JTextField tSzukany;
 
     Menu() {
         setSize(800, 800);
@@ -70,6 +75,15 @@ public class Menu extends JFrame implements ActionListener {
         JScrollPane scrollPane = new JScrollPane(notatnik);
         scrollPane.setBounds(50,50,600,600);
         add(scrollPane);
+
+        tSzukany = new JTextField();
+        tSzukany.setBounds(50, 650, 100,20);
+        add(tSzukany);
+
+        bSzukaj = new JButton("Szukaj");
+        bSzukaj.setBounds(200, 650,100, 20);
+        add(bSzukaj);
+        bSzukaj.addActionListener(this);
     }
 
     @Override
@@ -77,16 +91,33 @@ public class Menu extends JFrame implements ActionListener {
         Object z = e.getSource();
         if (z == mOtworz){
             JFileChooser fc = new JFileChooser();
-                if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION ){
+                if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION ) {
                     File plik = fc.getSelectedFile();
-                    JOptionPane.showMessageDialog(null, "Wybrany plik to: " + plik.getAbsolutePath());
+                    try {
+                        Scanner skanner = new Scanner(plik);
+                        while (skanner.hasNext()) {
+                            notatnik.append(skanner.nextLine() + "\n");
+                        }
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    }
+                    //JOptionPane.showMessageDialog(null, "Wybrany plik to: " + plik.getAbsolutePath());
                 }
         }
         else if (z == mZapisz){
             JFileChooser fc = new JFileChooser();
             if ( fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                 File plik = fc.getSelectedFile();
-                JOptionPane.showMessageDialog(null, "Wybrany plik to: " + plik.getAbsolutePath());
+                //JOptionPane.showMessageDialog(null, "Wybrany plik to: " + plik.getAbsolutePath());
+                try {
+                    PrintWriter pw = new PrintWriter(plik);
+                    Scanner skaner = new Scanner(notatnik.getText());
+                    while (skaner.hasNext())
+                        pw.println(skaner.nextLine() + "\n");
+                    pw.close();
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
 
@@ -101,22 +132,38 @@ public class Menu extends JFrame implements ActionListener {
                 JOptionPane.showConfirmDialog(null, "Tak nie robimy", "Tytuł", JOptionPane.WARNING_MESSAGE);
 
         }
-        if (z == chOpcja2) {
+        else if (z == chOpcja2) {
             if (chOpcja2.isSelected()) {
                 mNarz1.setEnabled(true);
             } else if (!chOpcja2.isSelected()) {
                 mNarz1.setEnabled(false);
             }
         }
-        if (z == mOProgramie)
+        else if (z == mOProgramie)
             JOptionPane.showMessageDialog(null, "Program 1.0", "To jest ostrzeżenie", JOptionPane.WARNING_MESSAGE);
-        if (z == mNarz2) {
+        else if (z == mNarz2) {
             String sMetry = JOptionPane.showInputDialog("Podaj długość w metrach");
             double metry = Double.parseDouble(sMetry);
             double stopy = metry/0.3048;
             String sStopy = String.format("%.2f", stopy);
             JOptionPane.showMessageDialog(null, metry + "metrów" + stopy + "stóp");
         }
+        else if (z == bSzukaj){
+            String text = notatnik.getText();
+            String szukane = tSzukany.getText();
+            String wystapienia ="";
+            int i = 0;
+            int index;
+            int startIndex = 0;
+
+            while ((index = text.indexOf(szukane, startIndex)) != -1) {
+                startIndex = index + szukane.length();
+                wystapienia = wystapienia + index;
+                i++;
+            }
+            JOptionPane.showMessageDialog(null, szukane + " wystąpiło " + i + " razy: " + wystapienia );
+        }
+
     }
 
     public static void main(String[] args) {
